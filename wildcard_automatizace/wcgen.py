@@ -27,7 +27,6 @@ REG_DIRECTORY = 'registrations'
 
 
 
-
 def usage():
     print 'Usage: ' + sys.argv[0] + ' CN REG '
     print 'example: ' + sys.argv[0] + ' moje-domena.cz h90'
