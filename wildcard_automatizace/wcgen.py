@@ -90,9 +90,9 @@ def acme_query():
 		sys.exit(1)
 
 
-	csr = OpenSSL.crypto.load_certificate_request(
-		OpenSSL.crypto.FILETYPE_ASN1, pkg_resources.resource_string(
-			'acme', os.path.join('testdata', 'csr.der')))
+	# csr = OpenSSL.crypto.load_certificate_request(
+	# 	OpenSSL.crypto.FILETYPE_ASN1, pkg_resources.resource_string(
+	# 		'acme', os.path.join('testdata', 'csr.der')))
 
 	pkey = OpenSSL.crypto.PKey()
 	pkey.generate_key(OpenSSL.crypto.TYPE_RSA, BITS)
