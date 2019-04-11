@@ -84,13 +84,14 @@ def wildcard_request(cn, account):
     #begin order
     orderr = acme.new_order(req)
     d = ''
+    validation_data = []
     while d.strip() == '':
     	for authr in orderr.authorizations:
     		for chalr in authr.body.challenges:
     			if type(chalr.chall) == type(challenges.DNS01()):
-    				print "%s %s" % (chalr.chall.validation_domain_name(cn),chalr.chall.validation(key))
-    				#logging.debug(orderr.authorizations[0].body.challenges[0].chall)
-    				# jedem DNS validaci
+    				validation_data.append([str(chalr.chall.validation(key)), chalr.chall.validation_domain_name(cn)])
+        print validation_data
+
     	d = sys.stdin.readline()
     	for authr in orderr.authorizations:
     		for chalr in authr.body.challenges:
