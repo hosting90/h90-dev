@@ -4,6 +4,7 @@ import os,sys
 import pkg_resources
 import re
 import json
+import time
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -19,6 +20,7 @@ from acme import messages
 from acme import crypto_util, challenges
 from acme.client import ClientV2, ClientNetwork
 
+import dns.resolver
 
 logging.basicConfig(level=logging.INFO)
 
@@ -29,7 +31,42 @@ REG_DIRECTORY = 'registrations'
 
 
 
+
+
+
+
+
 def wildcard_request(cn, account):
+
+    def dns_check_ns1():
+        recieved_data_dup = []
+        recieved_data = []
+
+        ns1_resolver = dns.resolver.Resolver()
+        #ns1_resolver.nameservers = ['130.193.8.82','2a03:b780::1:1']
+        ns1_resolver.nameservers = ['173.245.58.51']
+
+        for data in validation_data:
+            domainname = data[1]
+            challenge = data[0]
+            answers = ns1_resolver.query(domainname, 'txt')
+            for rdata in answers:
+                recieved_data_dup.append([str(rdata).replace('"', ''), domainname])
+
+        #Deduplication of ns records (in case of more cnames)
+        for i in recieved_data_dup:
+            if i not in recieved_data:
+                recieved_data.append(i)
+
+        # print sorted(recieved_data)
+        # print sorted(validation_data)
+        if sorted(validation_data) == sorted(recieved_data):
+            return True
+        else:
+            return False
+
+
+
     #Check if CN is valid domain
     domain_regex = re.compile("^([a-zA-Z0-9]([\-a-zA-Z0-9]{0,61}[a-zA-Z0-9])?\.)*([a-zA-Z0-9]([\-a-zA-Z0-9]{0,61}[a-zA-Z0-9])+\.)([a-zA-Z0-9]+([\-a-zA-Z0-9]{0,61}[a-zA-Z])+)$")
     if not domain_regex.match(cn):
@@ -62,7 +99,9 @@ def wildcard_request(cn, account):
     #Init ACME
     net = ClientNetwork(key)
     directory = net.get(DIRECTORY_URL).json()
+
     acme = client.ClientV2(directory, net)
+
 
     #Check if registration is valid
     if acme.query_registration(regr).body.status == u'valid':
@@ -85,25 +124,46 @@ def wildcard_request(cn, account):
     orderr = acme.new_order(req)
     d = ''
     validation_data = []
-    while d.strip() == '':
-    	for authr in orderr.authorizations:
-    		for chalr in authr.body.challenges:
-    			if type(chalr.chall) == type(challenges.DNS01()):
-    				validation_data.append([str(chalr.chall.validation(key)), chalr.chall.validation_domain_name(cn)])
-        print validation_data
+    from dns_write import dns_apply_challenge as dns_apply
+    from dns_write import dns_remove_challenge as dns_remove
 
-    	d = sys.stdin.readline()
-    	for authr in orderr.authorizations:
-    		for chalr in authr.body.challenges:
-    			if type(chalr.chall) == type(challenges.DNS01()):
-    				try:
-    					acme.answer_challenge(chalr,challenges.DNS01Response())
-    				except:
-    					print chalr.chall.encode('token')+" already answered"
+    for authr in orderr.authorizations:
+    	for chalr in authr.body.challenges:
+    		if type(chalr.chall) == type(challenges.DNS01()):
+    			validation_data.append([str(chalr.chall.validation(key)), chalr.chall.validation_domain_name(cn)])
+    #print validation_data
+    #Now, call DNS writing function to apply challenges
+    dns_apply(cn, validation_data)
+    #Wait, and than check if DNS propagated to some big servers (goog?)
+
+    #Check if DNS has propagated to goog
+    sys.stdin.readline()
+    limiter = 2
+    while not dns_check_ns1():
+        if limiter != 0:
+            print "DNS records are not correct, trying again in few seconds"
+            limiter = limiter - 1
+            time.sleep(5)
+        else:
+            print "DNS are not correct even after several tries. Aborting"
+            sys.exit(1)
+
+
+
+    for authr in orderr.authorizations:
+        for chalr in authr.body.challenges:
+            if type(chalr.chall) == type(challenges.DNS01()):
+                try:
+                    acme.answer_challenge(chalr,challenges.DNS01Response())
+                except:
+                    print chalr.chall.encode('token')+" already answered (challenge failed, you have to generate new one)"
+
 
     #After filling DNS and waiting for propagation, finalize order
-    res = acme.poll_and_finalize(orderr)
-
+    try:
+        res = acme.poll_and_finalize(orderr)
+    finally:
+        dns_remove(cn)
     #logging.info(res)
 
     cert = x509.load_pem_x509_certificate(str(res.fullchain_pem), default_backend())
@@ -122,6 +182,8 @@ def wildcard_request(cn, account):
 
     print json.dumps(output_data)
 
+
+
 # DEBUG INPUT FROM TERMINAL
 def usage():
     print 'Usage: ' + sys.argv[0] + ' CN REG '
@@ -137,5 +199,7 @@ def input_san():
         wildcard_request(cn, account)
 
 
+
 input_san() #Input from arguments
-wildcard_request("divecky.com", "h90") #Function input
+
+#wildcard_request("divecky.com", "h90") #Function input
