@@ -22,6 +22,9 @@ from acme.client import ClientV2, ClientNetwork
 
 import dns.resolver
 
+from dns_write import dns_apply_challenge as dns_apply
+from dns_write import dns_remove_challenge as dns_remove
+
 logging.basicConfig(level=logging.INFO)
 
 
@@ -48,7 +51,7 @@ def wildcard_request(cn, account):
 
         for data in validation_data:
             domainname = data[1]
-            challenge = data[0]
+            #challenge = data[0]
             answers = ns1_resolver.query(domainname, 'txt')
             for rdata in answers:
                 recieved_data_dup.append([str(rdata).replace('"', ''), domainname])
@@ -122,10 +125,9 @@ def wildcard_request(cn, account):
 
     #begin order
     orderr = acme.new_order(req)
-    d = ''
+
     validation_data = []
-    from dns_write import dns_apply_challenge as dns_apply
-    from dns_write import dns_remove_challenge as dns_remove
+
 
     for authr in orderr.authorizations:
     	for chalr in authr.body.challenges:
@@ -134,10 +136,10 @@ def wildcard_request(cn, account):
     #print validation_data
     #Now, call DNS writing function to apply challenges
     dns_apply(cn, validation_data)
-    #Wait, and than check if DNS propagated to some big servers (goog?)
 
-    #Check if DNS has propagated to goog
-    sys.stdin.readline()
+
+    #Check if DNS is valid on our server
+    sys.stdin.readline() #DEBUG: wait for manual DNS input
     limiter = 2
     while not dns_check_ns1():
         if limiter != 0:

@@ -57,7 +57,7 @@ def dns_write_to_file(cn, validation_data):
 #dns_apply_challenge(cn, validation_data)
 #dns_remove_challenge(cn)
 
-#Just removing everything except top and second level domains (eg. docs.hosting90.cz => hosting90.cz)
+#Just removing everything except top and second level domains (eg. new.docs.hosting90.cz => hosting90.cz)
 def give_me_zonefile(cn):
     nsfile = cn.split(".")[-2:]
     zonefile = nsfile[0] + "." + nsfile[1]
