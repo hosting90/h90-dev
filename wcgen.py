@@ -46,8 +46,8 @@ def wildcard_request(cn, account):
         recieved_data = []
 
         ns1_resolver = dns.resolver.Resolver()
-        #ns1_resolver.nameservers = ['130.193.8.82','2a03:b780::1:1']
-        ns1_resolver.nameservers = ['173.245.58.51']
+        #ns1_resolver.nameservers = ['130.193.8.82','2a03:b780::1:1'] #ns1.hosting90.cz
+        ns1_resolver.nameservers = ['173.245.58.51'] #DigitalOcean (pro testování, svoje DNS mám tam)
 
         for data in validation_data:
             domainname = data[1]
@@ -92,7 +92,7 @@ def wildcard_request(cn, account):
     	reg_uri = reguri_file.read()
 
 
-    #Compose regr
+    #Compose registration resource (regr)
     key = jose.JWKRSA(key=privkey)
     regr = messages.RegistrationResource(
     	body=messages.Registration(
@@ -139,8 +139,9 @@ def wildcard_request(cn, account):
 
 
     #Check if DNS is valid on our server
+    print "DEBUG: waiting for manual DNS input. Press a key after."
     sys.stdin.readline() #DEBUG: wait for manual DNS input
-    limiter = 2
+    limiter = 5
     while not dns_check_ns1():
         if limiter != 0:
             print "DNS records are not correct, trying again in few seconds"
