@@ -5,10 +5,15 @@ import re
 import datetime
 import base
 import mydns #Better specify just sign_and_compile?
+from fcntl import flock, LOCK_EX, LOCK_NB, LOCK_SH, LOCK_UN
 
 
-DNS_MASTER_ZONE_PATH='/var/named/master'
-DNS_COMPILED_ZONE_PATH='/var/named/master-compiled'
+# DNS_MASTER_ZONE_PATH='/var/named/master'
+# DNS_COMPILED_ZONE_PATH='/var/named/master-compiled'
+
+DNS_MASTER_ZONE_PATH='master'
+DNS_COMPILED_ZONE_PATH='master-compiled'
+
 
 #Main functions
 def dns_apply_challenge(cn, validation_data):
@@ -25,21 +30,23 @@ def dns_apply_challenge(cn, validation_data):
     for data in validation_data:
         dns_recs.append('%s\t60\tIN\tTXT\t"%s"\n' % (data[1].rsplit(".",2)[:-2][0], data[0]))
     zonefile_append = open(zonefile, "a+")
+    flock(zonefile_append,LOCK_EX)
     for dns_rec in dns_recs:
         zonefile_append.write(dns_rec)
     zonefile_append.close()
     #Check if we really have chalres in zonefile
     if dns_challenge_in_file(zonefile):
-        dns_compile_zonefile(base_domain, zonefile, zonefile_compiled)
+        return dns_compile_zonefile(base_domain, zonefile, zonefile_compiled)
     else:
-        print "Unable to write challenge"
-        return False
+        return ["Unable to write challenge", False]
 
 def dns_remove_challenge(cn, commit = True):
     base_domain = extract_base_domain(cn)
     zonefile = DNS_MASTER_ZONE_PATH + "/" + base_domain
     zonefile_compiled = DNS_COMPILED_ZONE_PATH + "/" + base_domain
-    with open(DNS_MASTER_ZONE_PATH + "/" + base_domain, "r+") as f:
+    f = open(DNS_MASTER_ZONE_PATH + "/" + base_domain, "r+")
+    flock(f,LOCK_EX)
+    with f:
         d = f.readlines()
         f.seek(0)
         for i in d:
@@ -55,8 +62,8 @@ def dns_remove_challenge(cn, commit = True):
     if not commit:
         return True
     else:
-        #Start commiting process.
-        print ""
+        return dns_compile_zonefile(base_domain, zonefile, zonefile_compiled)
+
 
 #Subfunctions
 def extract_base_domain(cn):
@@ -92,6 +99,7 @@ def dns_compile_zonefile(base_domain, zonefile, zonefile_compiled):
     serial_updated = False
     line = None
     srcfh = open(zonefile,'r+')
+    flock(srcfh,LOCK_EX)
     while line == None or line != '':
         line = srcfh.readline()
         if increment_serial and not serial_updated:
@@ -122,4 +130,5 @@ def dns_compile_zonefile(base_domain, zonefile, zonefile_compiled):
         return [True, "Zone not loaded:\n"+str(out)+"\n\n"+str(err)]
 
 #debug run
-dns_compile_zonefile("divecky.com", "master/divecky.com", "master-compiled/divecky.com")
+dns_remove_challenge("divecky.com", False)
+#dns_compile_zonefile("divecky.com", "master/divecky.com", "master-compiled/divecky.com")
