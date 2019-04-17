@@ -5,7 +5,7 @@ import re
 import datetime
 import base
 import mydns #Better specify just sign_and_compile?
-from fcntl import flock, LOCK_EX, LOCK_NB, LOCK_SH, LOCK_UN
+from fcntl import flock, LOCK_EX
 
 
 # DNS_MASTER_ZONE_PATH='/var/named/master'
