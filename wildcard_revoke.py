@@ -36,7 +36,7 @@ REG_DIRECTORY = 'registrations'
 
 
 
-def wildcard_revoke(cert_pem,reason,account):
+def wildcard_revoke(cert_pem,account):
 
         #Check if registrar exists
         if account not in os.listdir(REG_DIRECTORY):
@@ -94,4 +94,4 @@ def wildcard_revoke(cert_pem,reason,account):
 
 
 with open("tmp/fullchain.pem", "r") as cert_pem:
-    print wildcard_revoke(cert_pem.read(), "Unspecified", "h90")
+    print wildcard_revoke(cert_pem.read(),"h90")
