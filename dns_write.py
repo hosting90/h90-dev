@@ -90,35 +90,40 @@ def dns_detect_dnssec(zonefile_compiled):
         return False
 
 def dns_compile_zonefile(base_domain, zonefile, zonefile_compiled):
+
+    ####
+    return True
+    ####
+
     if dns_detect_dnssec(zonefile_compiled):
-        print "" #Here, we just use prepared function from mydns.py
-        dnssec_write = mydns_sign_and_compile(base_domain, zonefile, zonefile_compiled, True)
-        return dnssec_write
+    #If there are DNSSEC records in zonefile, use prepared function
+        compile_result = mydns_sign_and_compile(base_domain, zonefile, zonefile_compiled, True)
+        #return dnssec_write
 
-    increment_serial = True
-    serial_updated = False
-    line = None
-    srcfh = open(zonefile,'r+')
-    flock(srcfh,LOCK_EX)
-    while line == None or line != '':
-        line = srcfh.readline()
-        if increment_serial and not serial_updated:
-            mymatch = re.match('^(\s+([0-9]{10})\s*;\s*serial\s*)$',line)
-            if mymatch != None:
-                old_serial = int(mymatch.group(2))
-                today_serial = int(datetime.date.today().strftime('%Y%m%d00'))
-                new_serial = max(old_serial,today_serial)+1
-                line = line.replace(mymatch.group(2),str(new_serial))
-                filepos = srcfh.tell()
-                srcfh.seek(filepos-len(line))
-                srcfh.write(line)
-                serial_updated=True
-    srcfh.close()
-
-    #Compile zone
-    (out, err, res) = base.shell_exec2('named-compilezone -o '+zonefile_compiled+' '+ base_domain +' '+zonefile)
-    compile_result = res == 0
-
+    else:
+        #If no dnssec is used, just increase serial and compile zone.
+        increment_serial = True
+        serial_updated = False
+        line = None
+        srcfh = open(zonefile,'r+')
+        flock(srcfh,LOCK_EX)
+        while line == None or line != '':
+            line = srcfh.readline()
+            if increment_serial and not serial_updated:
+                mymatch = re.match('^(\s+([0-9]{10})\s*;\s*serial\s*)$',line)
+                if mymatch != None:
+                    old_serial = int(mymatch.group(2))
+                    today_serial = int(datetime.date.today().strftime('%Y%m%d00'))
+                    new_serial = max(old_serial,today_serial)+1
+                    line = line.replace(mymatch.group(2),str(new_serial))
+                    filepos = srcfh.tell()
+                    srcfh.seek(filepos-len(line))
+                    srcfh.write(line)
+                    serial_updated=True
+        srcfh.close()
+        #Compile zone
+        (out, err, res) = base.shell_exec2('named-compilezone -o '+zonefile_compiled+' '+ base_domain +' '+zonefile)
+        compile_result = res == 0
 
     os.utime(zonefile_compiled, None)
 
@@ -130,5 +135,5 @@ def dns_compile_zonefile(base_domain, zonefile, zonefile_compiled):
         return [True, "Zone not loaded:\n"+str(out)+"\n\n"+str(err)]
 
 #debug run
-dns_remove_challenge("divecky.com", False)
+#dns_remove_challenge("divecky.com", False)
 #dns_compile_zonefile("divecky.com", "master/divecky.com", "master-compiled/divecky.com")
