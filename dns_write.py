@@ -4,7 +4,7 @@ import os
 import re
 import datetime
 import base
-import mydns #Better specify just sign_and_compile?
+from mydns import sign_and_compile as mydns_sign_and_compile
 from fcntl import flock, LOCK_EX
 
 
@@ -92,7 +92,7 @@ def dns_detect_dnssec(zonefile_compiled):
 def dns_compile_zonefile(base_domain, zonefile, zonefile_compiled):
     if dns_detect_dnssec(zonefile_compiled):
         print "" #Here, we just use prepared function from mydns.py
-        dnssec_write = mydns.sign_and_compile(base_domain, zonefile, zonefile_compiled, True)
+        dnssec_write = mydns_sign_and_compile(base_domain, zonefile, zonefile_compiled, True)
         return dnssec_write
 
     increment_serial = True
