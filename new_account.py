@@ -26,26 +26,20 @@ REG_DIRECTORY = 'registrations'
 
 
 def usage():
-	print 'Usage: ' + sys.argv[0] + ' REG '
-	print 'example: ' + sys.argv[0] + ' h90'
+	print 'Usage: ' + sys.argv[0] + ' REG email'
+	print 'example: ' + sys.argv[0] + ' h90 admin@hosting90.cz'
 	sys.exit(1)
 
 def input_san():
-	if len(sys.argv) != 2 :
+	if len(sys.argv) != 3 :
 		usage()
 	elif sys.argv[1] not in os.listdir(REG_DIRECTORY):
-		global REGISTRATOR
+		global REGISTRATOR, REG_EMAIL
 		REGISTRATOR = sys.argv[1]
+		REG_EMAIL = 'mailto:'+sys.argv[2]
 	else:
 		print "Registration with this name already exsits"
 		sys.exit(1)
-
-
-
-
-
-
-
 
 def create_registration():
 	global privkey, regr
@@ -57,7 +51,7 @@ def create_registration():
 	net = ClientNetwork(key)
 	directory = net.get(DIRECTORY_URL).json()
 	acme = client.ClientV2(directory, net)
-	regbody = dict(messages.Registration(contact=('mailto:admin@hosting90.cz',),terms_of_service_agreed=True, key=key.public_key()))
+	regbody = dict(messages.Registration(contact=(REG_EMAIL,),terms_of_service_agreed=True, key=key.public_key()))
 	#NEED TO SAVE REGBODY VARIABLE TO FILE
 	regr = acme.new_account(messages.NewRegistration(**regbody))
 	#Need to check if succesfull
@@ -87,14 +81,12 @@ def save_registration():
 	reg_uri_file.write(regr.uri)
 	reg_uri_file.close()
 
-def final_check():
-	print ""
+
 
 
 def main():
 	input_san()
 	create_registration()
 	save_registration()
-	final_check()
 	"""It would be nice to now read those files, and compose acme.query_registration(), then check if it succeeded. But later..."""
 main()
