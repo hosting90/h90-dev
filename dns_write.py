@@ -54,15 +54,15 @@ def dns_remove_challenge(cn, commit = True):
 	if base_domain not in os.listdir(DNS_MASTER_ZONE_PATH):
 		return ["Zonefile not found", False]
 
-	f = open(zonefile, "r+")
-	flock(f,LOCK_EX)
-	with f:
-		d = f.readlines()
-		f.seek(0)
-		for i in d:
-			if "_acme-challenge" not in i:
-				f.write(i)
-		f.truncate()
+	zonefile_file = open(zonefile, "r+")
+	flock(zonefile_file,LOCK_EX)
+	with zonefile_file:
+		zonefile_read = zonefile_file.readlines()
+		zonefile_file.seek(0)
+		for line in zonefile_read:
+			if "_acme-challenge" not in line:
+				zonefile_file.write(line)
+		zonefile_file.truncate()
 	if dns_challenge_in_file(zonefile):
 		print "Something is wrong, cannot remove challenge"
 		return False
