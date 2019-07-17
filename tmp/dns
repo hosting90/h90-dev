@@ -1,0 +1,7 @@
+
+import dns.resolver
+
+
+answers = dns.resolver.query('_acme-challenge.divecky.com', 'txt')
+for rdata in answers:
+    print rdata
