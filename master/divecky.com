@@ -1,10 +1,10 @@
-$ORIGIN moje-domena.cz. 
+$ORIGIN moje-domena.cz.
 @ 3600 IN SOA ns1.hosting90.cz. admin.hosting90.cz. (
-    2019040902 ; serial 
-    7200 ; refresh 
-    1200 ; retry 
-    1209600 ; expire 
-    3600 ; default_ttl 
+    2019041701 ; serial
+    7200 ; refresh
+    1200 ; retry
+    1209600 ; expire
+    3600 ; default_ttl
 )
 mail	3600	IN	A		37.46.82.67
 smtp	3600	IN	A		130.193.10.76
@@ -25,9 +25,5 @@ admin	3600	IN	A		130.193.8.114
 wp	3600	IN	A		130.193.9.50
 wp	3600	IN	AAAA		2a03:b780:0001:0001:216:3eff:fe00:532
 *.wp	3600	IN	CNAME		wp
-[]	60	IN	TXT	"6ge5TFXmZ6qgg1_rNXgLLAcOCjHs3pr-OP0cf7fLBZ4"
-[]	60	IN	TXT	"VAihbYjlFAzELD5IqgFcjTKmdENbvGlCv7spyy2gAaQ"
-[]	60	IN	TXT	"6ge5TFXmZ6qgg1_rNXgLLAcOCjHs3pr-OP0cf7fLBZ4"
-[]	60	IN	TXT	"VAihbYjlFAzELD5IqgFcjTKmdENbvGlCv7spyy2gAaQ"
-a	60	IN	TXT	"CV8Hc2VjC3ARVXLP81hhJi_oKT6dGTp_PqoLEEHniSU"
-a	60	IN	TXT	"gUwRq-rGTgbTD1h6xhhImtRNuI5SDluZeOEyoX_gnhY"
+_acme-challenge	60	IN	TXT	"KO0Ne_6kf2gbHeqmJfltMQalEtTnTCz-59FIn4kCApI"
+_acme-challenge	60	IN	TXT	"1ArFoCa92ayOURQ7Ejl9-MI973vOxov7ouwwmpPzbf4"

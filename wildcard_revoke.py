@@ -26,12 +26,12 @@ import dns.resolver
 from dns_write import dns_apply_challenge as dns_apply
 from dns_write import dns_remove_challenge as dns_remove
 
-logging.basicConfig(level=logging.INFO)
+#logging.basicConfig(level=logging.INFO)
 
 
 DIRECTORY_URL = 'https://acme-staging-v02.api.letsencrypt.org/directory'
 BITS = 4096  # minimum for Boulder
-REG_DIRECTORY = 'registrations'
+REG_DIRECTORY = '/root/wildcard/registrations'
 
 
 
@@ -93,5 +93,6 @@ def wildcard_revoke(cert_pem,account):
 			return["Something went seriously wrong",False]
 
 
-with open("tmp/fullchain.pem", "r") as cert_pem:
-	print wildcard_revoke(cert_pem.read(),"h90")
+#Debug input
+# with open("tmp/fullchain.pem", "r") as cert_pem:
+# 	print wildcard_revoke(cert_pem.read(),"h90sys-new")

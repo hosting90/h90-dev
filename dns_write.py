@@ -45,7 +45,6 @@ def dns_apply_challenge(cn, validation_data):
 		return dns_compile_zonefile(base_domain, zonefile, zonefile_compiled)
 	else:
 		return ["Unable to write challenge", False]
-
 def dns_remove_challenge(cn, commit = True):
 	base_domain = extract_base_domain(cn)
 	zonefile = DNS_MASTER_ZONE_PATH + "/" + base_domain
@@ -91,14 +90,11 @@ def dns_challenge_in_file(zonefile):
 		#return list
 	else:
 		return False
-
-
 def dns_detect_dnssec(zonefile_compiled):
 	if 'DNSKEY' in open(zonefile_compiled).read():
 		return True
 	else:
 		return False
-
 def dns_compile_zonefile(base_domain, zonefile, zonefile_compiled):
 
 	####

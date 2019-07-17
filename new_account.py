@@ -26,67 +26,75 @@ REG_DIRECTORY = 'registrations'
 
 
 def usage():
-	print 'Usage: ' + sys.argv[0] + ' REG email'
-	print 'example: ' + sys.argv[0] + ' h90 admin@hosting90.cz'
-	sys.exit(1)
+    print 'Usage: ' + sys.argv[0] + ' REG '
+    print 'example: ' + sys.argv[0] + ' h90'
+    sys.exit(1)
 
 def input_san():
-	if len(sys.argv) != 3 :
-		usage()
-	elif sys.argv[1] not in os.listdir(REG_DIRECTORY):
-		global REGISTRATOR, REG_EMAIL
-		REGISTRATOR = sys.argv[1]
-		REG_EMAIL = 'mailto:'+sys.argv[2]
-	else:
-		print "Registration with this name already exsits"
-		sys.exit(1)
+    if len(sys.argv) != 2 :
+        usage()
+    elif sys.argv[1] not in os.listdir(REG_DIRECTORY):
+        global REGISTRATOR
+        REGISTRATOR = sys.argv[1]
+    else:
+        print "Registration with this name already exsits"
+        sys.exit(1)
+
+
+
+
+
+
+
 
 def create_registration():
-	global privkey, regr
-	privkey = rsa.generate_private_key(
-		public_exponent=65537,
-		key_size=BITS,
-		backend=default_backend())
-	key = jose.JWKRSA(key=privkey)
-	net = ClientNetwork(key)
-	directory = net.get(DIRECTORY_URL).json()
-	acme = client.ClientV2(directory, net)
-	regbody = dict(messages.Registration(contact=(REG_EMAIL,),terms_of_service_agreed=True, key=key.public_key()))
-	#NEED TO SAVE REGBODY VARIABLE TO FILE
-	regr = acme.new_account(messages.NewRegistration(**regbody))
-	#Need to check if succesfull
+    global privkey, regr
+    privkey = rsa.generate_private_key(
+    	public_exponent=65537,
+    	key_size=BITS,
+    	backend=default_backend())
+    key = jose.JWKRSA(key=privkey)
+    net = ClientNetwork(key)
+    directory = net.get(DIRECTORY_URL).json()
+    acme = client.ClientV2(directory, net)
+    regbody = dict(messages.Registration(contact=('mailto:admin@hosting90.cz',),terms_of_service_agreed=True, key=key.public_key()))
+    #NEED TO SAVE REGBODY VARIABLE TO FILE
+    regr = acme.new_account(messages.NewRegistration(**regbody))
+    #Need to check if succesfull
 
 
 
 def save_registration():
-	REG_DIR = 'registrations/'+REGISTRATOR
-	try:
-		os.mkdir(REG_DIR, 0o755)
-	except OSError:
-		print ("Creation of the directory %s failed" % REGISTRATOR)
+    REG_DIR = 'registrations/'+REGISTRATOR
+    try:
+        os.mkdir(REG_DIR, 0o755)
+    except OSError:
+        print ("Creation of the directory %s failed" % REGISTRATOR)
 
 
-	#Serialize key
-	privkey_pem = privkey.private_bytes(
-	   encoding=serialization.Encoding.PEM,
-	   format=serialization.PrivateFormat.TraditionalOpenSSL,
-	   encryption_algorithm=serialization.NoEncryption()
-	)
-	#And write it
-	pkey_file = open(REG_DIR+"/private.key","w")
-	pkey_file.write(privkey_pem)
-	pkey_file.close()
-	#Write regr uri
-	reg_uri_file = open(REG_DIR+"/reguri.txt","w")
-	reg_uri_file.write(regr.uri)
-	reg_uri_file.close()
+    #Serialize key
+    privkey_pem = privkey.private_bytes(
+       encoding=serialization.Encoding.PEM,
+       format=serialization.PrivateFormat.TraditionalOpenSSL,
+       encryption_algorithm=serialization.NoEncryption()
+    )
+    #And write it
+    pkey_file = open(REG_DIR+"/private.key","w")
+    pkey_file.write(privkey_pem)
+    pkey_file.close()
+    #Write regr uri
+    reg_uri_file = open(REG_DIR+"/reguri.txt","w")
+    reg_uri_file.write(regr.uri)
+    reg_uri_file.close()
 
-
+def final_check():
+    print ""
 
 
 def main():
-	input_san()
-	create_registration()
-	save_registration()
-	"""It would be nice to now read those files, and compose acme.query_registration(), then check if it succeeded. But later..."""
+    input_san()
+    create_registration()
+    save_registration()
+    final_check()
+    """It would be nice to now read those files, and compose acme.query_registration(), then check if it succeeded. But later..."""
 main()
